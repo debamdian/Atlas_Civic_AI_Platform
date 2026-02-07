@@ -1,0 +1,42 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isAdmin() {
+      return isAuthenticated() && request.auth.token.role == 'admin';
+    }
+
+    function isWorker() {
+      return isAuthenticated() && request.auth.token.role == 'worker';
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    // Users collection
+    match /users/{userId} {
+       allow read: if isAuthenticated(); // Or stricter: isOwner(userId) || isAdmin()
+       allow write: if isAdmin(); // Only admins can create/edit users directly via client SDK (usually done via Admin SDK)
+    }
+
+    // Complaints collection
+    match /complaints/{complaintId} {
+      allow read: if isAuthenticated(); // Public read? Or restrict to owner/admin? For now, auth users.
+      allow create: if isAuthenticated();
+      allow update: if isAdmin() || isWorker(); // Status updates
+    }
+
+    // Tasks collection
+    match /tasks/{taskId} {
+      allow read: if isAdmin() || isWorker();
+      allow create: if isAdmin();
+      allow update: if isAdmin() || (isWorker() && resource.data.workerId == request.auth.uid);
+    }
+  }
+}
