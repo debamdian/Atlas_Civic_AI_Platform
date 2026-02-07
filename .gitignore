@@ -1,3 +1,10 @@
+ARCHITECTURE.md
+IMPLEMENTATION_CHECKLIST.md
+UPDATE_LOG.md
+ERROR_LOG.md
+MANUAL_SETUP.md
+help.txt
+
 # Node
 node_modules/
 npm-debug.log
